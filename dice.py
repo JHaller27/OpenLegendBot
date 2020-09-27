@@ -163,6 +163,66 @@ class Dice:
     def __list__(self):
         return self._rolls
 
+    def __lt__(self, other):
+        if self._result is None:
+            raise RuntimeError("Dice not rolled yet")
+
+        if isinstance(other, Dice):
+            if other._result is None:
+                raise RuntimeError("Dice not rolled yet")
+
+            return self._result < other._result
+
+        if isinstance(other, int):
+            return self._result < other
+
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        if self._result is None:
+            raise RuntimeError("Dice not rolled yet")
+
+        if isinstance(other, Dice):
+            if other._result is None:
+                raise RuntimeError("Dice not rolled yet")
+
+            return self._result == other._result
+
+        if isinstance(other, int):
+            return self._result == other
+
+        raise NotImplementedError
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        if self._result is None:
+            raise RuntimeError("Dice not rolled yet")
+
+        if isinstance(other, Dice):
+            if other._result is None:
+                raise RuntimeError("Dice not rolled yet")
+
+            return self._result > other._result
+
+        if isinstance(other, int):
+            return self._result > other
+
+        raise NotImplementedError
+
+    def __le__(self, other):
+        try:
+            return self.__eq__(other)
+        except:
+            return self.__lt__(other)
+
+    def __ge__(self, other):
+        try:
+            return self.__eq__(other)
+        except:
+            return self.__gt__(other)
+
     def _copy(self):
         cp = Dice(self._num, self._size)
         cp._mod = self._mod
