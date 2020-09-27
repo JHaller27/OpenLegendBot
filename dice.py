@@ -34,7 +34,7 @@ class Dice:
             return MultiDice([self, other])
 
         if not isinstance(other, int):
-            raise NotImplementedError
+            raise TypeError
 
         cp = self._copy()
         if cp._mod is None:
@@ -48,7 +48,7 @@ class Dice:
             return MultiDice([self, other])
 
         if not isinstance(other, int):
-            raise NotImplementedError
+            raise TypeError
 
         if self._mod is None:
             self._mod = 0
@@ -64,7 +64,7 @@ class Dice:
 
     def __mul__(self, other):
         if not isinstance(other, int):
-            raise NotImplementedError
+            raise TypeError
 
         cp = self._copy()
         cp._num *= other
@@ -73,7 +73,7 @@ class Dice:
 
     def __imul__(self, other):
         if not isinstance(other, int):
-            raise NotImplementedError
+            raise TypeError
 
         self._num *= other
 
@@ -81,7 +81,7 @@ class Dice:
 
     def __floordiv__(self, other):
         if not isinstance(other, int):
-            raise NotImplementedError
+            raise TypeError
 
         cp = self._copy()
         cp._num //= other
@@ -90,7 +90,7 @@ class Dice:
 
     def __ifloordiv__(self, other):
         if not isinstance(other, int):
-            raise NotImplementedError
+            raise TypeError
 
         self._num //= other
 
@@ -102,7 +102,7 @@ class Dice:
 
     def __imod__(self, other):
         if not isinstance(other, Dice):
-            raise NotImplementedError
+            raise TypeError
 
         if other._size != self._size:
             raise ValueError(f"Cannot add d{other._size}s to d{self._dize}s")
@@ -117,7 +117,7 @@ class Dice:
 
     def __ilshift__(self, other):
         if not isinstance(other, int):
-            raise NotImplementedError
+            raise TypeError
 
         self._ldrop_count = other
 
@@ -135,7 +135,7 @@ class Dice:
 
     def __irshift__(self, other):
         if not isinstance(other, int):
-            raise NotImplementedError
+            raise TypeError
 
         self._rdrop_count = other
 
@@ -304,7 +304,7 @@ class MultiDice(Dice):
             self._mod += other
 
         else:
-            raise NotImplementedError
+            raise TypeError
 
         return self
 
@@ -321,7 +321,7 @@ class MultiDice(Dice):
 
     def __imul__(self, other):
         if not isinstance(other, int):
-            raise NotImplementedError
+            raise TypeError
 
         for d in self._dice:
             d *= other
@@ -334,7 +334,7 @@ class MultiDice(Dice):
 
     def __ifloordiv__(self, other):
         if not isinstance(other, int):
-            raise NotImplementedError
+            raise TypeError
 
         for d in self._dice:
             d._num //= other
@@ -357,7 +357,7 @@ class MultiDice(Dice):
                     return self
 
         else:
-            raise NotImplementedError
+            raise TypeError
 
     def __neg__(self):
         return MultiDice(map(lambda d: -d, self._dice))
