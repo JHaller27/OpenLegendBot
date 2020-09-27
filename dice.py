@@ -12,6 +12,7 @@ class Dice:
     def __init__(self, num, size):
         self._num = num
         self._size = size
+        self._explode = False
         self._mod = None
         self._result = None
         self._rolls = None
@@ -239,14 +240,21 @@ class Dice:
 
     def get_dice_notation(self) -> str:
         s = f"{self._num}d{self._size}"
+
         if self._ldrop_count is not None:
             s += f"dl{self._ldrop_count}"
         if self._rdrop_count is not None:
             s += f"dh{self._rdrop_count}"
+        if self._explode:
+            s += "e"
+
         return s
 
     def _get_dice_sep(self, first) -> str:
         return " + " if not first else ""
+
+    def set_explode(self, explode=True):
+        self._explode = explode
 
     def get_mod_notation(self) -> str:
         if self._mod >= 0:
@@ -277,6 +285,13 @@ class Dice:
                 self._rdrop = self._rolls[self._ldrop_count:]
                 self._rolls = self._rolls[:self._rdrop_count]
 
+            # Explode
+            if self._explode:
+                for r in self._rolls:
+                    if r == self._size:
+                        self._rolls.append(randint(1, self._size))
+
+            # Sum
             self._result = sum(self._rolls)
 
             # Modifier
@@ -487,6 +502,10 @@ class MultiDice(Dice):
 
         return self._result
 
+    def set_explode(self, explode=True):
+        for d in self._dice:
+            d.set_explode(explode)
+
     def reset(self):
         for d in self._dice:
             d.reset()
@@ -515,9 +534,13 @@ if __name__ == "__main__":
     d[6] <<= 2
     d += 2
 
+    # Set explode
+    d.set_explode()
+
     # Roll & print
     d.get_result()
     print(d)
 
     # Get average
-    print("Average: " + d.get_average(True))
+    avg = d.get_average(True)
+    print(f"Average: {avg}")
