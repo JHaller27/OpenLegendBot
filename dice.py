@@ -304,9 +304,12 @@ if __name__ == "__main__":
     a = Dice(1, 20) + Dice(1, 10)
     print(a)
 
-    a = 5 + a
-    print(a)
+    b = Dice(1, 20) + Dice(2, 4)
+    print(b)
+
+    c = a - b + 5
+    print(c)
 
     print()
-    a.get_result()
-    print(a)
+    c.get_result()
+    print(c)
