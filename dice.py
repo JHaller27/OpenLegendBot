@@ -1,6 +1,13 @@
 from random import randint
 
 
+def round(x):
+    if int(x*10) - (int(x) * 10) >= 5:
+        return int(x) + 1
+    else:
+        return int(x)
+
+
 class Dice:
     def __init__(self, num, size):
         self._num = num
@@ -227,6 +234,14 @@ class Dice:
         self._ldrop_count = None
         self._rdrop_count = None
 
+    def get_average(self, rnd=False):
+        total = self._num * (self._size + 1) / 2
+
+        if rnd:
+            total = rount(total)
+
+        return total
+
 
 class NegaDice(Dice):
     def __neg__(self):
@@ -240,6 +255,9 @@ class NegaDice(Dice):
 
     def _get_dice_sep(self, first) -> str:
         return " - "
+
+    def get_average(self, rnd=False):
+        return -super().get_average(rnd)
 
 
 class MultiDice(Dice):
@@ -416,6 +434,14 @@ class MultiDice(Dice):
         self._mod = None
         self._result = None
 
+    def get_average(self, rnd=False):
+        total = sum(map(lambda d: d.get_average(False), self._dice))
+
+        if rnd:
+            total = round(total)
+
+        return total
+
 
 if __name__ == "__main__":
     # Roll OpenLegend attribute
@@ -432,3 +458,6 @@ if __name__ == "__main__":
     # Roll & print
     d.get_result()
     print(d)
+
+    # Get average
+    print("Average: " + d.get_average(True))
