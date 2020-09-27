@@ -220,8 +220,12 @@ class Dice:
 
     def reset(self):
         self._mod = None
-        self._rolls = None
         self._result = None
+        self._rolls = None
+        self._ldrop = None
+        self._rdrop = None
+        self._ldrop_count = None
+        self._rdrop_count = None
 
 
 class NegaDice(Dice):
