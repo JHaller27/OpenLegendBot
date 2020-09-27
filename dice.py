@@ -8,6 +8,10 @@ class Dice:
         self._mod = None
         self._result = None
         self._rolls = None
+        self._ldrop = None
+        self._rdrop = None
+        self._ldrop_count = None
+        self._rdrop_count = None
 
     def __repr__(self) -> str:
         s = self.get_dice_notation()
@@ -92,11 +96,62 @@ class Dice:
 
         return self
 
+    def __mod__(self, other):
+        cp = self._copy()
+        return cp.__imod__(other)
+
+    def __imod__(self, other):
+        if not isinstance(other, Dice):
+            raise NotImplementedError
+
+        if other._size != self._size:
+            raise ValueError(f"Cannot add d{other._size}s to d{self._dize}s")
+
+        self._num += other._num
+
+        return self
+
+    def __lshift__(self, other):
+        cp = self._copy()
+        return cp.__ilshift__(other)
+
+    def __ilshift__(self, other):
+        if not isinstance(other, int):
+            raise NotImplementedError
+
+        self._ldrop_count = other
+
+        if self._rolls is not None:
+            if self._ldrop is None:
+                self._ldrop = []
+            self._ldrop = self._rolls[:other]
+            self._rolls = self._rolls[other:]
+
+        return self
+
+    def __rshift__(self, other):
+        cp = self._copy()
+        return cp.__irshift__(other)
+
+    def __irshift__(self, other):
+        if not isinstance(other, int):
+            raise NotImplementedError
+
+        self._rdrop_count = other
+
+        if self._rolls is not None:
+            if self._rdrop is None:
+                self._rdrop = []
+            self._rdrop = self._rolls[other:]
+            self._rolls = self._rdrop
+
+        return self
+
     def __neg__(self):
         return NegaDice(self._num, self._size)
 
     def __int__(self):
-        return self._result
+        return self.get_result()
 
     def __list__(self):
         return self._rolls
@@ -116,7 +171,12 @@ class Dice:
         return d
 
     def get_dice_notation(self) -> str:
-        return f"{self._num}d{self._size}"
+        s = f"{self._num}d{self._size}"
+        if self._ldrop_count is not None:
+            s += f"dl{self._ldrop_count}"
+        if self._rdrop_count is not None:
+            s += f"dh{self._rdrop_count}"
+        return s
 
     def _get_dice_sep(self, first) -> str:
         return " + " if not first else ""
@@ -128,15 +188,34 @@ class Dice:
             return f" - {-self._mod}"
 
     def get_rolls_notation(self) -> str:
-        return " + ".join(map(lambda r: f"{r}", self._rolls))
+        ldrop_str = "<{}>".format(" + ".join(map(str, self._ldrop))) + " + " if self._ldrop is not None else ""
+        keep_str = " + ".join(map(str, self._rolls))
+        rdrop_str = "+ " + "<{}>".format(" + ".join(map(str, self._rdrop))) if self._rdrop is not None else ""
+
+        return ldrop_str + keep_str + rdrop_str
 
     def get_result_str(self) -> str:
         return f"Result: {self._result}"
 
     def get_result(self):
         if self._result is None:
-            self._rolls = [randint(1, self._size) for _ in range(self._num)]
+            # Base roll
+            self._rolls = sorted([randint(1, self._size) for _ in range(self._num)])
+
+            # Drop left/right
+            if self._ldrop_count is not None:
+                self._ldrop = self._rolls[:self._ldrop_count]
+                self._rolls = self._rolls[self._ldrop_count:]
+            if self._rdrop_count is not None:
+                self._rdrop = self._rolls[self._ldrop_count:]
+                self._rolls = self._rolls[:self._rdrop_count]
+
             self._result = sum(self._rolls)
+
+            # Modifier
+            if self._mod is not None:
+                self._result += self._mod
+
         return self._result
 
     def reset(self):
@@ -258,6 +337,24 @@ class MultiDice(Dice):
 
         return self
 
+    def __mod__(self, other):
+        cp = self._copy()
+        return cp.__imod__(other)
+
+    def __imod__(self, other):
+        if isinstance(other, MultiDice):
+            for d in other._dice:
+                self %= d
+
+        elif isinstance(other, Dice):
+            for d in self._dice:
+                if d._size == other._size:
+                    d %= other
+                    return self
+
+        else:
+            raise NotImplementedError
+
     def __neg__(self):
         return MultiDice(map(lambda d: -d, self._dice))
 
@@ -266,6 +363,22 @@ class MultiDice(Dice):
 
     def __list__(self):
         return self._dice
+
+    def __getitem__(self, size):
+        for d in self._dice:
+            if d._size == size:
+                return d
+
+    def __setitem__(self, size, dice):
+        new = []
+
+        for d in self._dice:
+            if d._size != size:
+                new.append(d)
+            else:
+                new.append(dice)
+
+        self._dice = new
 
     def _copy(self):
         cp = MultiDice(self._dice)
@@ -301,15 +414,17 @@ class MultiDice(Dice):
 
 
 if __name__ == "__main__":
-    a = Dice(1, 20) + Dice(1, 10)
-    print(a)
+    # Roll OpenLegend attribute
+    d = Dice(1, 20)
 
-    b = Dice(1, 20) + Dice(2, 4)
-    print(b)
+    # Attribute Score 5 (2d6)
+    d += Dice(2, 6)
 
-    c = a - b + 5
-    print(c)
+    # Spent 2 Legend Points
+    d %= Dice(2, 6)
+    d[6] <<= 2
+    d += 2
 
-    print()
-    c.get_result()
-    print(c)
+    # Roll & print
+    d.get_result()
+    print(d)
