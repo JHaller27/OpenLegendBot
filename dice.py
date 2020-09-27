@@ -287,9 +287,12 @@ class Dice:
 
             # Explode
             if self._explode:
-                for r in self._rolls:
-                    if r == self._size:
-                        self._rolls.append(randint(1, self._size))
+                explode_count = len(list(filter(lambda r: r == self._size, self._rolls)))
+                while explode_count > 0:
+                    new_roll = randint(1, self._size)
+                    self._rolls.append(new_roll)
+                    if new_roll != self._size:
+                        explode_count -= 1
 
             # Sum
             self._result = sum(self._rolls)
